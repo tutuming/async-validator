@@ -1,0 +1,17 @@
+{
+  "name": "async-validator",
+  "version": "0.1.0",
+  "description": "",
+  "keywords": [],
+  "author": "tutuming <tutuming@gmail.com>",
+  "repository": "git://github.com/tutuming/async-validator.git",
+  "dependencies": {
+    "coffee-script" : ""
+  },
+  "devDependencies": {
+    "should": "*",
+    "mocha": "*"
+  },
+  "main": "index",
+  "engines": { "node": "*" }
+}
