@@ -242,10 +242,12 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
 
 regexValidaor = (regex, msg) ->
   (str, next) ->
-    unless str.match(regex)
-      next msg
-    else
+    if not str or str == ''
+      return next()
+    if str.match(regex)
       next()
+    else
+      next msg
 
 ScalarValidator.register "isEmail", ->
   regexValidaor /^(?:[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+\.)*[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+@(?:(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!\.)){0,61}[a-zA-Z0-9]?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!$)){0,61}[a-zA-Z0-9]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$/, "Invalid email"
