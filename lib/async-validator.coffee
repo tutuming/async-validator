@@ -116,7 +116,7 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
   len : (args...) ->
     newInstance = @clone()
     if args.length is 1
-      newInstance._min = args[0]
+      newInstance._max = args[0]
 
     if args.length is 2
       newInstance._min = args[0]
@@ -344,11 +344,19 @@ ScalarValidator.register "min", (val) ->
     else
       next()
 
-ScalarValidator.register "len", (min, max) ->
+ScalarValidator.register "len", (args...) ->
   (str, next) ->
-    if not str or str.length < min
+    if args.length is 1
+      max = args[0]
+      min = null
+
+    if args.length is 2
+      min = args[0]
+      max = args[1]
+
+    if min and (not str or str.length < min)
       next "String is too small"
-    else if typeof max isnt `undefined` and str.length > max
+    else if max and str.length > max
       next "String is too large"
     else
       next()
