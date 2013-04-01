@@ -6,9 +6,9 @@
   "author": "tutuming <tutuming@gmail.com>",
   "repository": "git://github.com/tutuming/async-validator.git",
   "dependencies": {
-    "coffee-script" : ""
   },
   "devDependencies": {
+    "coffee-script" : "*",
     "should": "*",
     "mocha": "*"
   },
