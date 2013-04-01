@@ -3,7 +3,7 @@ asyncValidator = {}
 previousAsyncValidator = @asyncValidator
 
 if module?.exports?
-    module.exports = asyncValidator
+  module.exports = asyncValidator
 else
   # in browser
   asyncValidator.noConflict = =>
@@ -19,7 +19,7 @@ asyncValidator.Validator = class Validator
   clone : ->
     newInstance = new (@constructor)(@msg)
     newInstance._validators = @_validators.slice(0)
-    newInstance._required = @.required
+    newInstance._required = @_required
 
     return newInstance
 
@@ -41,7 +41,7 @@ asyncValidator.Validator = class Validator
 
   validate :(str, cb) ->
     idx = 0
-    if str is null or str is `undefined`
+    if str is null or str is `undefined` or str is ''
       if @_required
         return cb?("Required")
       else
@@ -89,8 +89,14 @@ asyncValidator.BooleanValidator = class BooleanValidator extends Validator
       return cb? null, false
     if value in [1, true, '1', 'true', 'yes', 'on']
       return cb? null, true
-    return cb? 'Invalid boolean value'
 
+    super value, (err, str) ->
+      if err
+        return cb?(err)
+      else if not str || str is ''
+        return cb? null, value
+      else
+        return cb? 'Invalid boolean value'
 
 asyncValidator.ArrayValidator = class ArrayValidator extends Validator
   constructor :  (innerValidator, @msg) ->
@@ -107,10 +113,14 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
 
     return newInstance
 
-  len : (min, max) ->
+  len : (args...) ->
     newInstance = @clone()
-    newInstance._min = min
-    newInstance._max = max
+    if args.length is 1
+      newInstance._min = args[0]
+
+    if args.length is 2
+      newInstance._min = args[0]
+      newInstance._max = args[1]
     return newInstance
 
   validate : (array, cb) ->
@@ -201,7 +211,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
         cb? err
       else
         if idx is @_validators.length
-          cb? null, obj
+          cb? null, completes
         else
           @_validators[idx++] obj, _next
 
@@ -283,15 +293,17 @@ Validator.register "equals", (val) ->
 ScalarValidator.register "regex", (pattern, modifiers) ->
   (str, next) ->
     pattern = new RegExp(pattern, modifiers)  if typeof pattern isnt "function"
-    unless str.match(pattern)
-      next "Invalid characters"
-    else
+
+    if not str || str.match(pattern)
       next()
+    else
+      next "Invalid characters"
+
 
 ScalarValidator.register "notRegex", (pattern, modifiers) ->
   (str, next) ->
     pattern = new RegExp(pattern, modifiers)  if typeof pattern isnt "function"
-    if str.match(pattern)
+    if str and str.match(pattern)
       next "Invalid characters"
     else
       next()
@@ -334,7 +346,7 @@ ScalarValidator.register "min", (val) ->
 
 ScalarValidator.register "len", (min, max) ->
   (str, next) ->
-    if str.length < min
+    if not str or str.length < min
       next "String is too small"
     else if typeof max isnt `undefined` and str.length > max
       next "String is too large"
@@ -344,11 +356,15 @@ ScalarValidator.register "len", (min, max) ->
 Validator.register "custom", (validator) ->
   validator
 
+# utility functions
 asyncValidator.string = ->
   new StringValidator()
 
 asyncValidator.number = ->
   new NumberValidator()
+
+asyncValidator.bool = ->
+  new BooleanValidator()
 
 asyncValidator. array = (innerValidator) ->
   new ArrayValidator(innerValidator)

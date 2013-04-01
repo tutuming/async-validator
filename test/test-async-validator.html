@@ -10,15 +10,15 @@
   <script>
     mocha.setup('bdd')
   </script>
-  <script type="text/coffeescript" src="../lib/async-validator.coffee"></script>
-  <script type="text/coffeescript" src="test-async-validator.coffee"></script>
+  <script src="../lib/async-validator.js"></script>
+  <script src="test-async-validator.js"></script>
 
-  <script type="text/javascript" src="http://jashkenas.github.com/coffee-script/extras/coffee-script.js"></script>
   <script>
+    chai.should();
+    mocha.setup('bdd');
     $(function(){
-      chai.should();
-      mocha.run()
-    })
+      mocha.run().globals(['async-validator']);
+    });
   </script>
 </head>
 <body>
