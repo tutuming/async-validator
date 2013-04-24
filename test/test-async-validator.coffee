@@ -62,7 +62,25 @@ describe "async-validator", ->
 
       it "should validate option string (undefined)", (done) ->
         asyncValidator.string().option().validate undefined, (err, str) ->
+          should.not.exist(err)
           should.not.exist(str)
+          done()
+
+      it "should validate option array (null)", (done) ->
+        asyncValidator.array().option().validate undefined, (err, str) ->
+          should.not.exist(err)
+          should.not.exist(str)
+          done()
+
+      it "should validate array nullable", (done) ->
+        asyncValidator.array().required().validate null, (err, str) ->
+          should.not.exist(err)
+          should.not.exist(str)
+          done()
+
+      it "should validate array nullable", (done) ->
+        asyncValidator.array().required().notNullable().validate null, (err, str) ->
+          err.should.equal('Not nullable')
           done()
 
     describe 'numeric', ->
@@ -75,4 +93,23 @@ describe "async-validator", ->
       it "should validate numeric string(2)", (done) ->
         asyncValidator.number().isInt().validate 'abc' , (err, number) ->
           err.should.equal('Invalid Integer')
+          done()
+
+    describe 'object', ->
+      V = asyncValidator
+
+      it "should validate object", (done) ->
+        registerValidator = V.obj
+          name : V.string().required().len(1, 100)
+          clientId : V.string().required().regex(/[a-zA-Z0-9-]*/).len(1, 100)
+          policy : V.string().len(3000)
+          redirectUris : V.array(
+            V.string().required()
+          )
+
+        registerValidator.validate
+          name : 'aiueo'
+          clientId : 'abcde'
+        , (err, obj) ->
+          should.not.exist(err)
           done()

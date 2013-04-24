@@ -80,14 +80,35 @@
             return done();
           });
         });
-        return it("should validate option string (undefined)", function(done) {
+        it("should validate option string (undefined)", function(done) {
           return asyncValidator.string().option().validate(void 0, function(err, str) {
+            should.not.exist(err);
             should.not.exist(str);
             return done();
           });
         });
+        it("should validate option array (null)", function(done) {
+          return asyncValidator.array().option().validate(void 0, function(err, str) {
+            should.not.exist(err);
+            should.not.exist(str);
+            return done();
+          });
+        });
+        it("should validate array nullable", function(done) {
+          return asyncValidator.array().required().validate(null, function(err, str) {
+            should.not.exist(err);
+            should.not.exist(str);
+            return done();
+          });
+        });
+        return it("should validate array nullable", function(done) {
+          return asyncValidator.array().required().notNullable().validate(null, function(err, str) {
+            err.should.equal('Not nullable');
+            return done();
+          });
+        });
       });
-      return describe('numeric', function() {
+      describe('numeric', function() {
         it("should validate numeric string(1)", function(done) {
           return asyncValidator.number().isInt().validate('123', function(err, number) {
             should.not.exist(err);
@@ -98,6 +119,28 @@
         return it("should validate numeric string(2)", function(done) {
           return asyncValidator.number().isInt().validate('abc', function(err, number) {
             err.should.equal('Invalid Integer');
+            return done();
+          });
+        });
+      });
+      return describe('object', function() {
+        var V;
+
+        V = asyncValidator;
+        return it("should validate object", function(done) {
+          var registerValidator;
+
+          registerValidator = V.obj({
+            name: V.string().required().len(1, 100),
+            clientId: V.string().required().regex(/[a-zA-Z0-9-]*/).len(1, 100),
+            policy: V.string().len(3000),
+            redirectUris: V.array(V.string().required())
+          });
+          return registerValidator.validate({
+            name: 'aiueo',
+            clientId: 'abcde'
+          }, function(err, obj) {
+            should.not.exist(err);
             return done();
           });
         });

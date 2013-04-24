@@ -50,6 +50,9 @@ asyncValidator.Validator = class Validator
       if not @_nullable
         return cb?("Not nullable")
 
+    if not str?
+      return cb? null, str
+
     _next = (err) =>
       if err
         if @_msg
@@ -162,6 +165,9 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
       if not @_nullable
         return cb?("Not nullable")
 
+    if not array?
+      return cb? null, array
+
     if isNaN(len) or not len?
       _next()
       return
@@ -238,6 +244,9 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
     if obj is null
       if not @_nullable
         return cb?("Not nullable")
+
+    if not obj?
+      return cb? null, obj
 
     if @_innerValidators.length is 0
       _next()
