@@ -22,7 +22,7 @@ describe "async-validator", ->
         v2.should.not.equal(v3)
 
     describe "validator registration", ->
-      it "can register a custom validator to string validator" , (done)->
+      it "can register a custom validator" , (done)->
         asyncValidator.Validator.register 'foo', ->
           (str, next) ->
             if str is 'hogehoge'
@@ -33,11 +33,12 @@ describe "async-validator", ->
         v = asyncValidator.string()
         v.foo().validate 'hogehoge', (err, str) ->
           str.should.equal('hogehoge')
-          done()
+          v.foo().validate 'hogehoge2', (err, str) ->
+            err.should.equal('not hogehoge')
+            done()
 
     describe "required and option", ->
       it "should validate string", (done) ->
-        asyncValidator.string().required().validate()
         asyncValidator.string().required().validate "a", (err, str) ->
           str.should.equal('a')
           done()
@@ -49,18 +50,25 @@ describe "async-validator", ->
 
       it "should validate required string", (done) ->
         asyncValidator.string().required().validate null, (err, str) ->
-          err.should.equal('Required')
+          should.not.exist(err)
+          should.not.exist(str)
           done()
 
-      it "should validate option string", (done) ->
-        asyncValidator.string().option().validate null, (err, str) ->
-          should.equal(str, null)
+      it "should validate null", (done) ->
+        asyncValidator.string().required().notNullable().validate \
+        null, (err, str) ->
+          err.should.equal('Not nullable')
+          done()
+
+      it "should validate option string (undefined)", (done) ->
+        asyncValidator.string().option().validate undefined, (err, str) ->
+          should.not.exist(str)
           done()
 
     describe 'numeric', ->
       it "should validate numeric string(1)", (done) ->
         asyncValidator.number().isInt().validate '123' , (err, number) ->
-          should.equal(null, err)
+          should.not.exist(err)
           number.should.equal(123)
           done()
 

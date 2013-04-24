@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "coffee-script" : "*",
-    "should": "*",
+    "chai": "*",
     "mocha": "*"
   },
   "main": "index",

@@ -8,16 +8,15 @@
   <script src="../deps/mocha.js"></script>
 
   <script>
+    should = chai.should();
     mocha.setup('bdd')
   </script>
   <script src="../lib/async-validator.js"></script>
   <script src="test-async-validator.js"></script>
 
   <script>
-    chai.should();
-    mocha.setup('bdd');
     $(function(){
-      mocha.run().globals(['async-validator']);
+      mocha.run().globals(['async-validator', 'jQuery']);
     });
   </script>
 </head>

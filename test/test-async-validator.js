@@ -32,7 +32,7 @@
         });
       });
       describe("validator registration", function() {
-        return it("can register a custom validator to string validator", function(done) {
+        return it("can register a custom validator", function(done) {
           var v;
 
           asyncValidator.Validator.register('foo', function() {
@@ -47,13 +47,15 @@
           v = asyncValidator.string();
           return v.foo().validate('hogehoge', function(err, str) {
             str.should.equal('hogehoge');
-            return done();
+            return v.foo().validate('hogehoge2', function(err, str) {
+              err.should.equal('not hogehoge');
+              return done();
+            });
           });
         });
       });
       describe("required and option", function() {
         it("should validate string", function(done) {
-          asyncValidator.string().required().validate();
           return asyncValidator.string().required().validate("a", function(err, str) {
             str.should.equal('a');
             return done();
@@ -67,13 +69,20 @@
         });
         it("should validate required string", function(done) {
           return asyncValidator.string().required().validate(null, function(err, str) {
-            err.should.equal('Required');
+            should.not.exist(err);
+            should.not.exist(str);
             return done();
           });
         });
-        return it("should validate option string", function(done) {
-          return asyncValidator.string().option().validate(null, function(err, str) {
-            should.equal(str, null);
+        it("should validate null", function(done) {
+          return asyncValidator.string().required().notNullable().validate(null, function(err, str) {
+            err.should.equal('Not nullable');
+            return done();
+          });
+        });
+        return it("should validate option string (undefined)", function(done) {
+          return asyncValidator.string().option().validate(void 0, function(err, str) {
+            should.not.exist(str);
             return done();
           });
         });
@@ -81,7 +90,7 @@
       return describe('numeric', function() {
         it("should validate numeric string(1)", function(done) {
           return asyncValidator.number().isInt().validate('123', function(err, number) {
-            should.equal(null, err);
+            should.not.exist(err);
             number.should.equal(123);
             return done();
           });

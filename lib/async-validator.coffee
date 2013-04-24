@@ -15,6 +15,7 @@ asyncValidator.Validator = class Validator
   constructor : (@msg) ->
     @_validators = []
     @_required = false
+    @_nullable = true
 
   clone : ->
     newInstance = new (@constructor)(@msg)
@@ -41,11 +42,14 @@ asyncValidator.Validator = class Validator
 
   validate :(str, cb) ->
     idx = 0
-    if str is null or str is `undefined` or str is ''
+    if typeof str is 'undefined'
       if @_required
         return cb?("Required")
-      else
-        return cb?(null, str)
+
+    if str is null
+      if not @_nullable
+        return cb?("Not nullable")
+
     _next = (err) =>
       if err
         if @_msg
@@ -68,6 +72,16 @@ asyncValidator.Validator = class Validator
   option : ->
     newInstance = @clone()
     newInstance._required = false
+    return newInstance
+
+  nullable : ->
+    newInstance = @clone()
+    newInstance._nullable = true
+    return newInstance
+
+  notNullable : ->
+    newInstance = @clone()
+    newInstance._nullable = false
     return newInstance
 
 asyncValidator.ScalarValidator = class ScalarValidator extends Validator
@@ -140,11 +154,14 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
         else
           @_validators[idx++] array, _next
 
-    if array is null or array is `undefined`
+    if typeof array is 'undefined'
       if @_required
         return cb?("Required")
-      else
-        return cb?(null, array)
+
+    if array is null
+      if not @_nullable
+        return cb?("Not nullable")
+
     if isNaN(len) or not len?
       _next()
       return
@@ -214,12 +231,14 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
           cb? null, completes
         else
           @_validators[idx++] obj, _next
-
-    if obj is null or obj is `undefined`
+    if typeof obj is 'undefined'
       if @_required
         return cb?("Required")
-      else
-        return cb?(null, obj)
+
+    if obj is null
+      if not @_nullable
+        return cb?("Not nullable")
+
     if @_innerValidators.length is 0
       _next()
       return
