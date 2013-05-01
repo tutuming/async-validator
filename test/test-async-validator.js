@@ -123,6 +123,29 @@
           });
         });
       });
+      describe('boolean', function() {
+        it("should validate bool(true)", function(done) {
+          return asyncValidator.bool().validate(true, function(err, bool) {
+            console.log('hey');
+            should.not.exist(err);
+            bool.should.equal(true);
+            return done();
+          });
+        });
+        it("should validate bool(false)", function(done) {
+          return asyncValidator.bool().validate(true, function(err, bool) {
+            should.not.exist(err);
+            bool.should.equal(true);
+            return done();
+          });
+        });
+        return it("should validate bool with options", function(done) {
+          return asyncValidator.bool()["in"]([false]).validate(true, function(err, bool) {
+            err.should.equal("Unexpected value");
+            return done();
+          });
+        });
+      });
       return describe('object', function() {
         var V;
 

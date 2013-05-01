@@ -102,18 +102,19 @@ asyncValidator.NumberValidator = class NumberValidator extends ScalarValidator
 
 asyncValidator.BooleanValidator = class BooleanValidator extends Validator
   validate : (value, cb) ->
+    boolValue = null
     if value in [0, false, '0', 'false', 'no', 'off']
-      return cb? null, false
-    if value in [1, true, '1', 'true', 'yes', 'on']
-      return cb? null, true
+      boolValue = false
+    else if value in [1, true, '1', 'true', 'yes', 'on']
+      boolValue = true
+    else if value?
+      return cb? 'Invalid boolean value'
 
     super value, (err, str) ->
-      if err
+      if err?
         return cb?(err)
-      else if not str || str is ''
-        return cb? null, value
       else
-        return cb? 'Invalid boolean value'
+        return cb? null, boolValue
 
 asyncValidator.ArrayValidator = class ArrayValidator extends Validator
   constructor :  (innerValidator, @msg) ->

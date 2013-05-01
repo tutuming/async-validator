@@ -95,6 +95,25 @@ describe "async-validator", ->
           err.should.equal('Invalid Integer')
           done()
 
+    describe 'boolean', ->
+      it "should validate bool(true)", (done) ->
+        asyncValidator.bool().validate true , (err, bool) ->
+          console.log 'hey'
+          should.not.exist(err)
+          bool.should.equal true
+          done()
+
+      it "should validate bool(false)", (done) ->
+        asyncValidator.bool().validate true , (err, bool) ->
+          should.not.exist(err)
+          bool.should.equal true
+          done()
+
+      it "should validate bool with options", (done) ->
+        asyncValidator.bool().in([false]).validate true , (err, bool) ->
+          err.should.equal "Unexpected value"
+          done()
+
     describe 'object', ->
       V = asyncValidator
 
