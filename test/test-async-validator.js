@@ -126,7 +126,6 @@
       describe('boolean', function() {
         it("should validate bool(true)", function(done) {
           return asyncValidator.bool().validate(true, function(err, bool) {
-            console.log('hey');
             should.not.exist(err);
             bool.should.equal(true);
             return done();

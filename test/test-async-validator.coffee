@@ -98,7 +98,6 @@ describe "async-validator", ->
     describe 'boolean', ->
       it "should validate bool(true)", (done) ->
         asyncValidator.bool().validate true , (err, bool) ->
-          console.log 'hey'
           should.not.exist(err)
           bool.should.equal true
           done()
