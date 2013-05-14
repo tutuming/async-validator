@@ -145,7 +145,7 @@
           });
         });
       });
-      return describe('object', function() {
+      describe('object', function() {
         var V;
 
         V = asyncValidator;
@@ -163,6 +163,127 @@
             clientId: 'abcde'
           }, function(err, obj) {
             should.not.exist(err);
+            return done();
+          });
+        });
+      });
+      return describe('context', function() {
+        var V;
+
+        V = asyncValidator;
+        it("string can have context", function(done) {
+          var v;
+
+          v = V.string().custom(function(str, next, context) {
+            if (str === (context != null ? context.value : void 0)) {
+              return next(null);
+            } else {
+              return next('invalid value');
+            }
+          });
+          return v.context({
+            value: 'abc'
+          }).validate('abc', function(err, str) {
+            str.should.equal('abc');
+            return done();
+          });
+        });
+        it("string can have context (error)", function(done) {
+          var v;
+
+          v = V.string().custom(function(str, next, context) {
+            if (str === (context != null ? context.value : void 0)) {
+              return next(null);
+            } else {
+              return next('invalid value');
+            }
+          });
+          return v.context({
+            value: 'abc2'
+          }).validate('abc', function(err, str) {
+            err.should.equal('invalid value');
+            return done();
+          });
+        });
+        it("array innervalidator can have context", function(done) {
+          var av, v;
+
+          v = V.string().custom(function(str, next, context) {
+            if (str === (context != null ? context.value : void 0)) {
+              return next(null);
+            } else {
+              return next('invalid value');
+            }
+          });
+          av = V.array(v);
+          return av.context({
+            value: 'abc'
+          }).validate(['abc', 'abc'], function(err, array) {
+            array.should.have.length(2);
+            return done();
+          });
+        });
+        it("array innervalidator can have error", function(done) {
+          var av, v;
+
+          v = V.string().custom(function(str, next, context) {
+            if (str === (context != null ? context.value : void 0)) {
+              return next(null);
+            } else {
+              return next('invalid value');
+            }
+          });
+          av = V.array(v);
+          return av.context({
+            value: 'abc2'
+          }).validate(['abc', 'abc2'], function(err, array) {
+            err[0].should.equal('invalid value');
+            should.not.exist(err[1]);
+            return done();
+          });
+        });
+        it("object innervalidators can have context", function(done) {
+          var ov, v;
+
+          v = V.string().custom(function(str, next, context) {
+            if (str === (context != null ? context.value : void 0)) {
+              return next(null);
+            } else {
+              return next('invalid value');
+            }
+          });
+          ov = V.obj({
+            text: v
+          });
+          return ov.context({
+            value: 'abc'
+          }).validate({
+            text: 'abc'
+          }, function(err, obj) {
+            obj.text.should.equal('abc');
+            return done();
+          });
+        });
+        return it("object innervalidator can have error", function(done) {
+          var ov, v;
+
+          v = V.string().custom(function(str, next, context) {
+            if (str === (context != null ? context.value : void 0)) {
+              return next(null);
+            } else {
+              return next('invalid value');
+            }
+          });
+          ov = V.obj({
+            text: v
+          });
+          console.log(ov.__proto__);
+          return ov.context({
+            value: 'abc2'
+          }).validate({
+            text: 'abc'
+          }, function(err, obj) {
+            err.text.should.equal('invalid value');
             return done();
           });
         });

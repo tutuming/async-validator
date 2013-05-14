@@ -12,21 +12,32 @@ else
   @asyncValidator = asyncValidator
 
 asyncValidator.Validator = class Validator
-  constructor : (@msg) ->
+  constructor : (message) ->
+    @_msg = message
     @_validators = []
+    @_context = null
     @_required = false
     @_nullable = true
 
   clone : ->
-    newInstance = new (@constructor)(@msg)
+    newInstance = new (@constructor)()
+
+    newInstance._msg = @_msg
     newInstance._validators = @_validators.slice(0)
+    newInstance._context = @_context
     newInstance._required = @_required
+    newInstance._nullable = @_nullable
 
     return newInstance
 
   msg : (msg) ->
     newInstance = @clone()
     newInstance._msg = msg
+    return newInstance
+
+  context : (context) ->
+    newInstance = @clone()
+    newInstance._context = context
     return newInstance
 
   @register = (name, validateFunc) ->
@@ -36,8 +47,8 @@ asyncValidator.Validator = class Validator
     this::[name] = ->
       newInstance = @clone()
       v_args = arguments
-      newInstance._validators.push (str, next) =>
-        validateFunc.apply(newInstance, v_args) str, next
+      newInstance._validators.push (str, next, context) =>
+        validateFunc.apply(newInstance, v_args) str, next, context
       return newInstance
 
   validate :(str, cb) ->
@@ -63,7 +74,7 @@ asyncValidator.Validator = class Validator
         if idx is @_validators.length
           cb? null, str
         else
-          @_validators[idx++] str, _next
+          @_validators[idx++] str, _next, @_context
 
     _next()
 
@@ -131,6 +142,12 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
 
     return newInstance
 
+  context : (context) ->
+    newInstance = @clone()
+    newInstance._innerValidator = newInstance._innerValidator.context(context)
+
+    return newInstance
+
   len : (args...) ->
     newInstance = @clone()
     if args.length is 1
@@ -156,7 +173,7 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
         if idx is @_validators.length
           cb? null, array
         else
-          @_validators[idx++] array, _next
+          @_validators[idx++] array, _next, @_context
 
     if typeof array is 'undefined'
       if @_required
@@ -214,15 +231,29 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
 
   clone : ->
     newInstance = super()
+    a = super
     newInstance._innerValidators = @_innerValidators.slice(0)
     return newInstance
 
+  context : (context) ->
+    newInstance = @clone()
+
+    contextValidators = []
+    for innerValidator in newInstance._innerValidators
+      contextValidators.push
+        name : innerValidator.name
+        validator : innerValidator.validator.context(context)
+
+    newInstance._innerValidators = contextValidators
+    return newInstance
+
   addProperty : (name, validator) ->
-    @_innerValidators.push
+    newInstance = @clone()
+    newInstance._innerValidators.push
       name: name
       validator: validator
 
-    return @
+    return newInstance
 
   validate : (obj, cb) ->
     completes = {}
@@ -237,7 +268,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
         if idx is @_validators.length
           cb? null, completes
         else
-          @_validators[idx++] obj, _next
+          @_validators[idx++] obj, _next, @_context
     if typeof obj is 'undefined'
       if @_required
         return cb?("Required")
@@ -383,7 +414,7 @@ ScalarValidator.register "len", (args...) ->
       min = args[0]
       max = args[1]
 
-    if min and (not str or str.length < min)
+    if min? and (not str or str.length < min)
       next "String is too small"
     else if max and str.length > max
       next "String is too large"

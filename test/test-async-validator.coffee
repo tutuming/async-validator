@@ -131,3 +131,83 @@ describe "async-validator", ->
         , (err, obj) ->
           should.not.exist(err)
           done()
+
+    describe 'context', ->
+      V = asyncValidator
+
+      it "string can have context", (done) ->
+        v = V.string().custom (str, next, context) ->
+          if str is context?.value
+            next null
+          else
+            next 'invalid value'
+
+        v.context({value : 'abc'}).validate 'abc', (err, str) ->
+          str.should.equal 'abc'
+          done()
+
+      it "string can have context (error)", (done) ->
+        v = V.string().custom (str, next, context) ->
+          if str is context?.value
+            next null
+          else
+            next 'invalid value'
+
+        v.context({value : 'abc2'}).validate 'abc', (err, str) ->
+          err.should.equal 'invalid value'
+          done()
+
+      it "array innervalidator can have context", (done) ->
+        v = V.string().custom (str, next, context) ->
+          if str is context?.value
+            next null
+          else
+            next 'invalid value'
+
+        av = V.array(v)
+
+        av.context({value : 'abc'}).validate ['abc', 'abc'], (err, array) ->
+          array.should.have.length 2
+          done()
+
+      it "array innervalidator can have error", (done) ->
+        v = V.string().custom (str, next, context) ->
+          if str is context?.value
+            next null
+          else
+            next 'invalid value'
+
+        av = V.array(v)
+
+        av.context({value : 'abc2'}).validate ['abc', 'abc2'], (err, array) ->
+          err[0].should.equal 'invalid value'
+          should.not.exist(err[1])
+          done()
+
+      it "object innervalidators can have context", (done) ->
+        v = V.string().custom (str, next, context) ->
+          if str is context?.value
+            next null
+          else
+            next 'invalid value'
+
+        ov = V.obj
+          text : v
+
+        ov.context({value : 'abc'}).validate {text : 'abc'}, (err, obj) ->
+          obj.text.should.equal 'abc'
+          done()
+
+      it "object innervalidator can have error", (done) ->
+        v = V.string().custom (str, next, context) ->
+          if str is context?.value
+            next null
+          else
+            next 'invalid value'
+
+        ov = V.obj
+          text : v
+        console.log ov.__proto__
+        ov.context({value : 'abc2'}).validate {text : 'abc'}, (err, obj) ->
+          err.text.should.equal 'invalid value'
+          done()
