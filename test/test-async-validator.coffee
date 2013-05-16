@@ -145,6 +145,29 @@ describe "async-validator", ->
           JSON.stringify(obj).should.equal JSON.stringify(org)
           done()
 
+      it "should validate require keys in object", (done) ->
+        V = asyncValidator
+        registerValidator = V.obj
+          name : V.string().required().len(1, 100)
+          clientId : V.string().required().regex(/[a-zA-Z0-9-]*/).len(1, 100)
+          policy : V.string().len(3000)
+          redirectUris : V.array(
+            V.string().required()
+          )
+
+        org =
+          clientId : 'abcde'
+          policy : 'aiueo'
+          redirectUris : [
+            'http://www.example.com',
+            'http://www.example2.com'
+          ]
+
+        registerValidator.validate org
+        , (err, obj) ->
+          should.exist(err)
+          done()
+
       it "should ignore option object", (done) ->
         registerValidator = V.obj
           name : V.string().required().len(1, 100)
