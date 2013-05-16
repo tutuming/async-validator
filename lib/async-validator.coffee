@@ -171,7 +171,7 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
         cb? err
       else
         if idx is @_validators.length
-          cb? null, array
+          cb? null, completes
         else
           @_validators[idx++] array, _next, @_context
 

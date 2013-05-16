@@ -156,7 +156,7 @@
 
         V = asyncValidator;
         it("should validate object", function(done) {
-          var registerValidator;
+          var org, registerValidator;
 
           registerValidator = V.obj({
             name: V.string().required().len(1, 100),
@@ -164,11 +164,15 @@
             policy: V.string().len(3000),
             redirectUris: V.array(V.string().required())
           });
-          return registerValidator.validate({
+          org = {
             name: 'aiueo',
-            clientId: 'abcde'
-          }, function(err, obj) {
+            clientId: 'abcde',
+            policy: 'aiueo',
+            redirectUris: ['http://www.example.com', 'http://www.example2.com']
+          };
+          return registerValidator.validate(org, function(err, obj) {
             should.not.exist(err);
+            JSON.stringify(obj).should.equal(JSON.stringify(org));
             return done();
           });
         });
@@ -182,13 +186,12 @@
           return registerValidator.validate({
             name: 'aiueo'
           }, function(err, obj) {
-            console.log(obj);
             should.not.exist(err);
             obj.should.not.have.key('value');
             return done();
           });
         });
-        return it("should block values not in validator", function(done) {
+        it("should block values not in validator", function(done) {
           var registerValidator;
 
           registerValidator = V.obj({
@@ -199,9 +202,39 @@
             name: 'aiueo',
             name2: 'hogehoge'
           }, function(err, obj) {
-            console.log(obj);
             should.not.exist(err);
-            obj.should.not.have.key('hogehoge');
+            obj.should.not.have.key('name2');
+            return done();
+          });
+        });
+        return it("should validate nested", function(done) {
+          var registerValidator;
+
+          registerValidator = V.obj({
+            name: V.string().required().len(1, 100),
+            objs: V.array(V.obj({
+              value: V.string()
+            }))
+          });
+          return registerValidator.validate({
+            name: 'aiueo',
+            name2: 'hogehoge',
+            objs: [
+              {
+                value: "12345",
+                value2: "12345"
+              }
+            ]
+          }, function(err, obj) {
+            should.not.exist(err);
+            JSON.stringify(obj).should.equal(JSON.stringify({
+              name: 'aiueo',
+              objs: [
+                {
+                  value: '12345'
+                }
+              ]
+            }));
             return done();
           });
         });

@@ -130,11 +130,19 @@ describe "async-validator", ->
             V.string().required()
           )
 
-        registerValidator.validate
+        org =
           name : 'aiueo'
           clientId : 'abcde'
+          policy : 'aiueo'
+          redirectUris : [
+            'http://www.example.com',
+            'http://www.example2.com'
+          ]
+
+        registerValidator.validate org
         , (err, obj) ->
           should.not.exist(err)
+          JSON.stringify(obj).should.equal JSON.stringify(org)
           done()
 
       it "should ignore option object", (done) ->
@@ -145,7 +153,6 @@ describe "async-validator", ->
         registerValidator.validate
           name : 'aiueo'
         , (err, obj) ->
-          console.log obj
           should.not.exist(err)
           obj.should.not.have.key 'value'
           done()
@@ -159,9 +166,31 @@ describe "async-validator", ->
           name : 'aiueo'
           name2 : 'hogehoge'
         , (err, obj) ->
-          console.log obj
           should.not.exist(err)
-          obj.should.not.have.key 'hogehoge'
+          obj.should.not.have.key 'name2'
+          done()
+
+      it "should validate nested", (done) ->
+        registerValidator = V.obj
+          name : V.string().required().len(1, 100)
+          objs : V.array V.obj
+            value : V.string()
+
+        registerValidator.validate
+          name : 'aiueo'
+          name2 : 'hogehoge'
+          objs :[
+            value : "12345"
+            value2 : "12345"
+          ]
+        , (err, obj) ->
+          should.not.exist(err)
+          JSON.stringify(obj).should.equal JSON.stringify(
+            name : 'aiueo'
+            objs : [{
+              value : '12345'
+            }]
+          )
           done()
 
 
