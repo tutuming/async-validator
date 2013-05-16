@@ -108,16 +108,22 @@
           });
         });
       });
-      describe('numeric', function() {
-        it("should validate numeric string(1)", function(done) {
+      describe('number', function() {
+        it("should validate numeric number(1)", function(done) {
           return asyncValidator.number().isInt().validate('123', function(err, number) {
             should.not.exist(err);
             number.should.equal(123);
             return done();
           });
         });
-        return it("should validate numeric string(2)", function(done) {
+        it("should validate numeric number(2)", function(done) {
           return asyncValidator.number().isInt().validate('abc', function(err, number) {
+            err.should.equal('Invalid Integer');
+            return done();
+          });
+        });
+        return it("should validate numeric number(3)", function(done) {
+          return asyncValidator.number().isInt().validate(null, function(err, number) {
             err.should.equal('Invalid Integer');
             return done();
           });
@@ -149,7 +155,7 @@
         var V;
 
         V = asyncValidator;
-        return it("should validate object", function(done) {
+        it("should validate object", function(done) {
           var registerValidator;
 
           registerValidator = V.obj({
@@ -163,6 +169,39 @@
             clientId: 'abcde'
           }, function(err, obj) {
             should.not.exist(err);
+            return done();
+          });
+        });
+        it("should ignore option object", function(done) {
+          var registerValidator;
+
+          registerValidator = V.obj({
+            name: V.string().required().len(1, 100),
+            value: V.string().option()
+          });
+          return registerValidator.validate({
+            name: 'aiueo'
+          }, function(err, obj) {
+            console.log(obj);
+            should.not.exist(err);
+            obj.should.not.have.key('value');
+            return done();
+          });
+        });
+        return it("should block values not in validator", function(done) {
+          var registerValidator;
+
+          registerValidator = V.obj({
+            name: V.string().required().len(1, 100),
+            value: V.string().option()
+          });
+          return registerValidator.validate({
+            name: 'aiueo',
+            name2: 'hogehoge'
+          }, function(err, obj) {
+            console.log(obj);
+            should.not.exist(err);
+            obj.should.not.have.key('hogehoge');
             return done();
           });
         });
@@ -277,7 +316,6 @@
           ov = V.obj({
             text: v
           });
-          console.log(ov.__proto__);
           return ov.context({
             value: 'abc2'
           }).validate({

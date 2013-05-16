@@ -300,6 +300,9 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
           checkComplete()
           return
         else
+          if not Object.prototype.hasOwnProperty.call(obj, name)
+            checkComplete()
+            return
           validator.validate obj[name], (err, obj) ->
             if err
               errorOccured = true

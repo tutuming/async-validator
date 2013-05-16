@@ -83,15 +83,20 @@ describe "async-validator", ->
           err.should.equal('Not nullable')
           done()
 
-    describe 'numeric', ->
-      it "should validate numeric string(1)", (done) ->
+    describe 'number', ->
+      it "should validate numeric number(1)", (done) ->
         asyncValidator.number().isInt().validate '123' , (err, number) ->
           should.not.exist(err)
           number.should.equal(123)
           done()
 
-      it "should validate numeric string(2)", (done) ->
+      it "should validate numeric number(2)", (done) ->
         asyncValidator.number().isInt().validate 'abc' , (err, number) ->
+          err.should.equal('Invalid Integer')
+          done()
+
+      it "should validate numeric number(3)", (done) ->
+        asyncValidator.number().isInt().validate null, (err, number) ->
           err.should.equal('Invalid Integer')
           done()
 
@@ -131,6 +136,34 @@ describe "async-validator", ->
         , (err, obj) ->
           should.not.exist(err)
           done()
+
+      it "should ignore option object", (done) ->
+        registerValidator = V.obj
+          name : V.string().required().len(1, 100)
+          value : V.string().option()
+
+        registerValidator.validate
+          name : 'aiueo'
+        , (err, obj) ->
+          console.log obj
+          should.not.exist(err)
+          obj.should.not.have.key 'value'
+          done()
+
+      it "should block values not in validator", (done) ->
+        registerValidator = V.obj
+          name : V.string().required().len(1, 100)
+          value : V.string().option()
+
+        registerValidator.validate
+          name : 'aiueo'
+          name2 : 'hogehoge'
+        , (err, obj) ->
+          console.log obj
+          should.not.exist(err)
+          obj.should.not.have.key 'hogehoge'
+          done()
+
 
     describe 'context', ->
       V = asyncValidator
@@ -207,7 +240,6 @@ describe "async-validator", ->
 
         ov = V.obj
           text : v
-        console.log ov.__proto__
         ov.context({value : 'abc2'}).validate {text : 'abc'}, (err, obj) ->
           err.text.should.equal 'invalid value'
           done()
