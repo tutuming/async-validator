@@ -49,7 +49,7 @@ describe "async-validator", ->
           done()
 
       it "should validate required string", (done) ->
-        asyncValidator.string().required().validate null, (err, str) ->
+        asyncValidator.string().required().nullable().validate null, (err, str) ->
           should.not.exist(err)
           should.not.exist(str)
           done()
@@ -73,13 +73,19 @@ describe "async-validator", ->
           done()
 
       it "should validate array nullable", (done) ->
-        asyncValidator.array().required().validate null, (err, str) ->
+        asyncValidator.array().required().nullable().validate null,
+         (err, str) ->
           should.not.exist(err)
           should.not.exist(str)
           done()
 
       it "should validate array nullable", (done) ->
         asyncValidator.array().required().notNullable().validate null, (err, str) ->
+          err.should.equal('Not nullable')
+          done()
+
+      it "should validate number nullable", (done) ->
+        asyncValidator.number().required().notNullable().validate null, (err, str) ->
           err.should.equal('Not nullable')
           done()
 
@@ -92,11 +98,6 @@ describe "async-validator", ->
 
       it "should validate numeric number(2)", (done) ->
         asyncValidator.number().isInt().validate 'abc' , (err, number) ->
-          err.should.equal('Invalid Integer')
-          done()
-
-      it "should validate numeric number(3)", (done) ->
-        asyncValidator.number().isInt().validate null, (err, number) ->
           err.should.equal('Invalid Integer')
           done()
 
@@ -191,6 +192,22 @@ describe "async-validator", ->
         , (err, obj) ->
           should.not.exist(err)
           obj.should.not.have.key 'name2'
+          done()
+
+      it "should block values not in validator(error)", (done) ->
+        registerValidator = V.obj
+          name : V.string().required().len(1, 5)
+          value : V.string().option()
+          value2 : V.string().option()
+
+        registerValidator.validate
+          name : 'aiueoaiueo'
+          value : "123"
+        , (err, obj) ->
+          should.exist(err)
+          err.should.have.property 'name'
+          err.should.have.property 'value'
+          err.should.not.have.property 'value2'
           done()
 
       it "should validate nested", (done) ->

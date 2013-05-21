@@ -68,7 +68,7 @@
           });
         });
         it("should validate required string", function(done) {
-          return asyncValidator.string().required().validate(null, function(err, str) {
+          return asyncValidator.string().required().nullable().validate(null, function(err, str) {
             should.not.exist(err);
             should.not.exist(str);
             return done();
@@ -95,14 +95,20 @@
           });
         });
         it("should validate array nullable", function(done) {
-          return asyncValidator.array().required().validate(null, function(err, str) {
+          return asyncValidator.array().required().nullable().validate(null, function(err, str) {
             should.not.exist(err);
             should.not.exist(str);
             return done();
           });
         });
-        return it("should validate array nullable", function(done) {
+        it("should validate array nullable", function(done) {
           return asyncValidator.array().required().notNullable().validate(null, function(err, str) {
+            err.should.equal('Not nullable');
+            return done();
+          });
+        });
+        return it("should validate number nullable", function(done) {
+          return asyncValidator.number().required().notNullable().validate(null, function(err, str) {
             err.should.equal('Not nullable');
             return done();
           });
@@ -116,14 +122,8 @@
             return done();
           });
         });
-        it("should validate numeric number(2)", function(done) {
+        return it("should validate numeric number(2)", function(done) {
           return asyncValidator.number().isInt().validate('abc', function(err, number) {
-            err.should.equal('Invalid Integer');
-            return done();
-          });
-        });
-        return it("should validate numeric number(3)", function(done) {
-          return asyncValidator.number().isInt().validate(null, function(err, number) {
             err.should.equal('Invalid Integer');
             return done();
           });
@@ -224,6 +224,25 @@
           }, function(err, obj) {
             should.not.exist(err);
             obj.should.not.have.key('name2');
+            return done();
+          });
+        });
+        it("should block values not in validator(error)", function(done) {
+          var registerValidator;
+
+          registerValidator = V.obj({
+            name: V.string().required().len(1, 5),
+            value: V.string().option(),
+            value2: V.string().option()
+          });
+          return registerValidator.validate({
+            name: 'aiueoaiueo',
+            value: "123"
+          }, function(err, obj) {
+            should.exist(err);
+            err.should.have.property('name');
+            err.should.have.property('value');
+            err.should.not.have.property('value2');
             return done();
           });
         });

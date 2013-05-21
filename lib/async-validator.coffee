@@ -16,8 +16,8 @@ asyncValidator.Validator = class Validator
     @_msg = message
     @_validators = []
     @_context = null
-    @_required = false
-    @_nullable = true
+    @_required = true
+    @_nullable = false
 
   clone : ->
     newInstance = new (@constructor)()
@@ -51,18 +51,18 @@ asyncValidator.Validator = class Validator
         validateFunc.apply(newInstance, v_args) str, next, context
       return newInstance
 
-  validate :(str, cb) ->
+  validate :(val, cb) ->
     idx = 0
-    if typeof str is 'undefined'
+    if typeof val is 'undefined'
       if @_required
         return cb?("Required")
 
-    if str is null
+    if val is null
       if not @_nullable
         return cb?("Not nullable")
 
-    if not str?
-      return cb? null, str
+    if not val?
+      return cb? null, val
 
     _next = (err) =>
       if err
@@ -72,9 +72,9 @@ asyncValidator.Validator = class Validator
           cb? err
       else
         if idx is @_validators.length
-          cb? null, str
+          cb? null, val
         else
-          @_validators[idx++] str, _next, @_context
+          @_validators[idx++] val, _next, @_context
 
     _next()
 
@@ -104,7 +104,11 @@ asyncValidator.StringValidator = class StringValidator extends ScalarValidator
 
 asyncValidator.NumberValidator = class NumberValidator extends ScalarValidator
   validate : (strOrNumber, cb) ->
-    str = strOrNumber + ''
+    if strOrNumber?
+      str = strOrNumber + ''
+    else
+      str = strOrNumber
+
     super str, (err, str) ->
       if err
         return cb?(err)
@@ -305,7 +309,8 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
               errorOccured = true
               errors[name] = err
             else
-              errors[name] = null
+              if obj.hasOwnProperty(name)
+                errors[name] = null
               if Object.prototype.hasOwnProperty.call(obj, name)
                 completes[name] = validatedObj
             checkComplete()
