@@ -291,10 +291,6 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
     if not obj?
       return cb? null, obj
 
-    if @_innerValidators.length is 0
-      _next()
-      return
-
     keys = []
     validatorMap = {}
     pushKey = (k) ->
@@ -324,7 +320,6 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
         if @_partial
           completes[name] = obj[name]
         checkComplete()
-        return
       else
         validator.validate obj[name], (err, validatedObj) =>
           if err
@@ -336,7 +331,6 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
             if Object.prototype.hasOwnProperty.call(obj, name)
               completes[name] = validatedObj
           checkComplete()
-          return
 
 regexValidaor = (regex, msg) ->
   (str, next) ->

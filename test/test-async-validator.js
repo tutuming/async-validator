@@ -251,6 +251,20 @@
         it("should through values not in validator (partial option)", function(done) {
           var registerValidator;
 
+          registerValidator = V.obj().partial(true);
+          return registerValidator.validate({
+            name: 'aiueo',
+            name2: 'hogehoge'
+          }, function(err, obj) {
+            should.not.exist(err);
+            obj.should.have.property('name');
+            obj.should.have.property('name2');
+            return done();
+          });
+        });
+        it("should through values not in validator (partial option) 2", function(done) {
+          var registerValidator;
+
           registerValidator = V.obj({
             name: V.string().required().len(1, 100),
             value: V.string().option()

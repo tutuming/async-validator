@@ -212,7 +212,21 @@ describe "async-validator", ->
           err.should.have.property 'value3'
           done()
 
+
       it "should through values not in validator (partial option)", (done) ->
+        registerValidator = V.obj().partial(true)
+        registerValidator.validate
+          name : 'aiueo'
+          name2 : 'hogehoge'
+        , (err, obj) ->
+          should.not.exist(err)
+
+          obj.should.have.property 'name'
+          obj.should.have.property 'name2'
+
+          done()
+
+      it "should through values not in validator (partial option) 2", (done) ->
         registerValidator = V.obj(
           name : V.string().required().len(1, 100)
           value : V.string().option()
