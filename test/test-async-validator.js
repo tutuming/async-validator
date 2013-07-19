@@ -233,7 +233,8 @@
           registerValidator = V.obj({
             name: V.string().required().len(1, 5),
             value: V.string().option(),
-            value2: V.string().option()
+            value2: V.string().option(),
+            value3: V.string()
           });
           return registerValidator.validate({
             name: 'aiueoaiueo',
@@ -243,10 +244,29 @@
             err.should.have.property('name');
             err.should.have.property('value');
             err.should.not.have.property('value2');
+            err.should.have.property('value3');
             return done();
           });
         });
-        return it("should validate nested", function(done) {
+        it("should through values not in validator (partial option)", function(done) {
+          var registerValidator;
+
+          registerValidator = V.obj({
+            name: V.string().required().len(1, 100),
+            value: V.string().option()
+          }).partial(true);
+          return registerValidator.validate({
+            name: 'aiueo',
+            name2: 'hogehoge'
+          }, function(err, obj) {
+            should.not.exist(err);
+            obj.should.have.property('name');
+            obj.should.not.have.property('value');
+            obj.should.have.property('name2');
+            return done();
+          });
+        });
+        it("should validate nested", function(done) {
           var registerValidator;
 
           registerValidator = V.obj({
@@ -274,6 +294,46 @@
                 }
               ]
             }));
+            return done();
+          });
+        });
+        it("should validate nested 2", function(done) {
+          var registerValidator;
+
+          registerValidator = V.obj({
+            name: V.string().required().len(1, 100),
+            obj1: V.obj({
+              obj2: V.obj().option()
+            })
+          });
+          return registerValidator.validate({
+            name: 'aiueo',
+            name2: 'hogehoge',
+            obj1: {}
+          }, function(err, obj) {
+            should.not.exist(err);
+            JSON.stringify(obj).should.equal(JSON.stringify({
+              name: 'aiueo',
+              obj1: {}
+            }));
+            return done();
+          });
+        });
+        return it("should validate nested 3", function(done) {
+          var registerValidator;
+
+          registerValidator = V.obj({
+            name: V.string().required().len(1, 100),
+            nums: V.number().required(),
+            obj1: V.obj({
+              obj2: V.obj().required()
+            }).option()
+          });
+          return registerValidator.validate({
+            name: 'aiueo',
+            num: 1
+          }, function(err, obj) {
+            should.exist(err);
             return done();
           });
         });

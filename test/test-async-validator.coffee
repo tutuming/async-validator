@@ -199,6 +199,7 @@ describe "async-validator", ->
           name : V.string().required().len(1, 5)
           value : V.string().option()
           value2 : V.string().option()
+          value3 : V.string()
 
         registerValidator.validate
           name : 'aiueoaiueo'
@@ -208,6 +209,25 @@ describe "async-validator", ->
           err.should.have.property 'name'
           err.should.have.property 'value'
           err.should.not.have.property 'value2'
+          err.should.have.property 'value3'
+          done()
+
+      it "should through values not in validator (partial option)", (done) ->
+        registerValidator = V.obj(
+          name : V.string().required().len(1, 100)
+          value : V.string().option()
+        ).partial(true)
+
+        registerValidator.validate
+          name : 'aiueo'
+          name2 : 'hogehoge'
+        , (err, obj) ->
+          should.not.exist(err)
+
+          obj.should.have.property 'name'
+          obj.should.not.have.property 'value'
+          obj.should.have.property 'name2'
+
           done()
 
       it "should validate nested", (done) ->
@@ -233,6 +253,38 @@ describe "async-validator", ->
           )
           done()
 
+      it "should validate nested 2", (done) ->
+        registerValidator = V.obj
+          name : V.string().required().len(1, 100)
+          obj1 : V.obj
+            obj2 : V.obj().option()
+
+        registerValidator.validate
+          name : 'aiueo'
+          name2 : 'hogehoge'
+          obj1 : {}
+        , (err, obj) ->
+          should.not.exist(err)
+          JSON.stringify(obj).should.equal JSON.stringify(
+            name : 'aiueo'
+            obj1 : {}
+          )
+          done()
+
+      it "should validate nested 3", (done) ->
+        registerValidator = V.obj
+          name : V.string().required().len(1, 100)
+          nums : V.number().required()
+          obj1 : V.obj(
+            obj2 : V.obj().required()
+          ).option()
+
+        registerValidator.validate
+          name : 'aiueo'
+          num : 1
+        , (err, obj) ->
+          should.exist(err)
+          done()
 
     describe 'context', ->
       V = asyncValidator

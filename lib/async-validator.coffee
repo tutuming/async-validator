@@ -228,6 +228,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
   constructor : (innerValidators, @msg) ->
     super(@msg)
     @_innerValidators = []
+    @_partial = false
     for key of innerValidators
       @_innerValidators.push
         name: key
@@ -237,6 +238,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
     newInstance = super()
     a = super
     newInstance._innerValidators = @_innerValidators.slice(0)
+    newInstance._partial = @_partial
     return newInstance
 
   context : (context) ->
@@ -249,6 +251,11 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
         validator : innerValidator.validator.context(context)
 
     newInstance._innerValidators = contextValidators
+    return newInstance
+
+  partial : (partial) ->
+    newInstance = @clone()
+    newInstance._partial = partial
     return newInstance
 
   addProperty : (name, validator) ->
@@ -287,34 +294,49 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
     if @_innerValidators.length is 0
       _next()
       return
+
+    keys = []
+    validatorMap = {}
+    pushKey = (k) ->
+      if !~keys.indexOf k
+        keys.push k
+
+    for innerValidator in @_innerValidators
+      validatorMap[innerValidator.name] = innerValidator.validator
+      pushKey innerValidator.name
+
     checkComplete = =>
       count += 1
-      if count is @_innerValidators.length
+      if count is keys.length
         if errorOccured
           cb? errors
         else
           _next()
 
-    for innerValidator in @_innerValidators
-      do (innerValidator) ->
-        name = innerValidator.name
-        validator = innerValidator.validator
-        if not validator
+    for k, v of obj
+      pushKey k
+
+    for key in keys
+      validator = validatorMap[key]
+      name = key
+
+      if not validator?
+        if @_partial
           completes[name] = obj[name]
+        checkComplete()
+        return
+      else
+        validator.validate obj[name], (err, validatedObj) =>
+          if err
+            errorOccured = true
+            errors[name] = err
+          else
+            if obj.hasOwnProperty(name)
+              errors[name] = null
+            if Object.prototype.hasOwnProperty.call(obj, name)
+              completes[name] = validatedObj
           checkComplete()
           return
-        else
-          validator.validate obj[name], (err, validatedObj) ->
-            if err
-              errorOccured = true
-              errors[name] = err
-            else
-              if obj.hasOwnProperty(name)
-                errors[name] = null
-              if Object.prototype.hasOwnProperty.call(obj, name)
-                completes[name] = validatedObj
-            checkComplete()
-            return
 
 regexValidaor = (regex, msg) ->
   (str, next) ->
