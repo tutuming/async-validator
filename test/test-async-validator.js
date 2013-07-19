@@ -176,6 +176,34 @@
             return done();
           });
         });
+        it("should validate object 2", function(done) {
+          var cv, org, registerValidator;
+
+          V.ScalarValidator.register('existsInOrg', function(modelClass, options) {
+            return function(id, next, context) {
+              return setTimeout(function() {
+                return next(null);
+              }, 1000);
+            };
+          });
+          registerValidator = V.obj({
+            user: V.string().required().len(1, 100).existsInOrg(),
+            maxReservations: V.number().required().min(1).max(5)
+          });
+          org = {
+            user: '51e90fd06104a50000000204',
+            maxReservations: 2
+          };
+          cv = registerValidator.context({
+            a: 2
+          });
+          return cv.validate(org, function(err, obj) {
+            should.not.exist(err);
+            obj.should.have.property('user', '51e90fd06104a50000000204');
+            obj.should.have.property('maxReservations', 2);
+            return done();
+          });
+        });
         it("should validate require keys in object", function(done) {
           var org, registerValidator;
 

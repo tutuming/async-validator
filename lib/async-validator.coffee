@@ -270,7 +270,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
     completes = {}
     errors = {}
     errorOccured = false
-    count = 0
+
     idx = 0
     _next = (err) =>
       if err
@@ -301,7 +301,11 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
       validatorMap[innerValidator.name] = innerValidator.validator
       pushKey innerValidator.name
 
-    checkComplete = =>
+    for k, v of obj
+      pushKey k
+
+    count = 0
+    checkComplete = ->
       count += 1
       if count is keys.length
         if errorOccured
@@ -309,28 +313,25 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
         else
           _next()
 
-    for k, v of obj
-      pushKey k
-
     for key in keys
-      validator = validatorMap[key]
-      name = key
-
-      if not validator?
-        if @_partial
-          completes[name] = obj[name]
-        checkComplete()
-      else
-        validator.validate obj[name], (err, validatedObj) =>
-          if err
-            errorOccured = true
-            errors[name] = err
-          else
-            if obj.hasOwnProperty(name)
-              errors[name] = null
-            if Object.prototype.hasOwnProperty.call(obj, name)
-              completes[name] = validatedObj
+      do (key) =>
+        validator = validatorMap[key]
+        name = key
+        if not validator?
+          if @_partial
+            completes[name] = obj[name]
           checkComplete()
+        else
+          validator.validate obj[name], (err, validatedObj) =>
+            if err
+              errorOccured = true
+              errors[name] = err
+            else
+              if obj.hasOwnProperty(name)
+                errors[name] = null
+              if Object.prototype.hasOwnProperty.call(obj, name)
+                completes[name] = validatedObj
+            checkComplete()
 
 regexValidaor = (regex, msg) ->
   (str, next) ->

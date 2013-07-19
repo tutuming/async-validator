@@ -146,6 +146,29 @@ describe "async-validator", ->
           JSON.stringify(obj).should.equal JSON.stringify(org)
           done()
 
+      it "should validate object 2", (done) ->
+        V.ScalarValidator.register 'existsInOrg',(modelClass, options) ->
+          (id, next, context) ->
+            setTimeout( ->
+              next null
+            , 1000)
+
+        registerValidator = V.obj
+          user : V.string().required().len(1, 100).existsInOrg()
+          maxReservations : V.number().required().min(1).max(5)
+
+        org =
+          user : '51e90fd06104a50000000204'
+          maxReservations : 2
+
+        cv  = registerValidator.context({ a : 2 })
+
+        cv.validate org, (err, obj) ->
+          should.not.exist(err)
+          obj.should.have.property 'user', '51e90fd06104a50000000204'
+          obj.should.have.property 'maxReservations', 2
+          done()
+
       it "should validate require keys in object", (done) ->
         V = asyncValidator
         registerValidator = V.obj
