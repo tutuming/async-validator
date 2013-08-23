@@ -124,7 +124,6 @@
         });
         return it("should validate number nullable", function(done) {
           return asyncValidator.number().required().notNullable().validate(null, function(err, str) {
-            console.log(err);
             err.validateInfo.should.equal('Not nullable');
             return done();
           });

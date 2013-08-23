@@ -118,8 +118,10 @@ asyncValidator.NumberValidator = class NumberValidator extends ScalarValidator
         str = null
       else
         str = strOrNumber + ''
+    else
+      str = strOrNumber
 
-    super strOrNumber, (err, str) ->
+    super str, (err, str) ->
       if err
         return cb? err
       else

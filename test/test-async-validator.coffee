@@ -98,7 +98,6 @@ describe "async-validator", ->
 
       it "should validate number nullable", (done) ->
         asyncValidator.number().required().notNullable().validate null, (err, str) ->
-          console.log err
           err.validateInfo.should.equal('Not nullable')
           done()
 
