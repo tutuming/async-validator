@@ -34,8 +34,20 @@ describe "async-validator", ->
         v.foo().validate 'hogehoge', (err, str) ->
           str.should.equal('hogehoge')
           v.foo().validate 'hogehoge2', (err, str) ->
-            err.should.equal('not hogehoge')
+            err.validateInfo.should.equal('not hogehoge')
             done()
+
+    describe "string validation", ->
+      it "should validate email" , (done)->
+        v = asyncValidator.string().isEmail()
+        v.validate '', (err, str) ->
+          should.exist(err)
+          v.validate 'test@test', (err, str) ->
+            should.exist(err)
+            v.validate 'test@test.com', (err, str) ->
+              should.not.exist(err)
+              str.should.equal 'test@test.com'
+              done()
 
     describe "required and option", ->
       it "should validate string", (done) ->
@@ -57,7 +69,7 @@ describe "async-validator", ->
       it "should validate null", (done) ->
         asyncValidator.string().required().notNullable().validate \
         null, (err, str) ->
-          err.should.equal('Not nullable')
+          err.validateInfo.should.equal('Not nullable')
           done()
 
       it "should validate option string (undefined)", (done) ->
@@ -81,12 +93,13 @@ describe "async-validator", ->
 
       it "should validate array nullable", (done) ->
         asyncValidator.array().required().notNullable().validate null, (err, str) ->
-          err.should.equal('Not nullable')
+          err.validateInfo.should.equal('Not nullable')
           done()
 
       it "should validate number nullable", (done) ->
         asyncValidator.number().required().notNullable().validate null, (err, str) ->
-          err.should.equal('Not nullable')
+          console.log err
+          err.validateInfo.should.equal('Not nullable')
           done()
 
     describe 'number', ->
@@ -98,7 +111,7 @@ describe "async-validator", ->
 
       it "should validate numeric number(2)", (done) ->
         asyncValidator.number().isInt().validate 'abc' , (err, number) ->
-          err.should.equal('Invalid Integer')
+          err.validateInfo.should.equal('Invalid Integer')
           done()
 
     describe 'boolean', ->
@@ -116,7 +129,7 @@ describe "async-validator", ->
 
       it "should validate bool with options", (done) ->
         asyncValidator.bool().in([false]).validate true , (err, bool) ->
-          err.should.equal "Unexpected value"
+          err.validateInfo.should.equal "Unexpected value"
           done()
 
     describe 'object', ->
@@ -229,10 +242,10 @@ describe "async-validator", ->
           value : "123"
         , (err, obj) ->
           should.exist(err)
-          err.should.have.property 'name'
-          err.should.have.property 'value'
-          err.should.not.have.property 'value2'
-          err.should.have.property 'value3'
+          err.validateInfo.should.have.property 'name'
+          err.validateInfo.should.have.property 'value'
+          err.validateInfo.should.not.have.property 'value2'
+          err.validateInfo.should.have.property 'value3'
           done()
 
 
@@ -345,7 +358,7 @@ describe "async-validator", ->
             next 'invalid value'
 
         v.context({value : 'abc2'}).validate 'abc', (err, str) ->
-          err.should.equal 'invalid value'
+          err.validateInfo.should.equal 'invalid value'
           done()
 
       it "array innervalidator can have context", (done) ->
@@ -371,7 +384,7 @@ describe "async-validator", ->
         av = V.array(v)
 
         av.context({value : 'abc2'}).validate ['abc', 'abc2'], (err, array) ->
-          err[0].should.equal 'invalid value'
+          err.validateInfo[0].should.equal 'invalid value'
           should.not.exist(err[1])
           done()
 
@@ -399,5 +412,5 @@ describe "async-validator", ->
         ov = V.obj
           text : v
         ov.context({value : 'abc2'}).validate {text : 'abc'}, (err, obj) ->
-          err.text.should.equal 'invalid value'
+          err.validateInfo.text.should.equal 'invalid value'
           done()

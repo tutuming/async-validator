@@ -11,6 +11,9 @@ else
     asyncValidator
   @asyncValidator = asyncValidator
 
+class ValidationError extends Error
+  constructor : (@validateInfo) ->
+
 asyncValidator.Validator = class Validator
   constructor : (message) ->
     @_msg = message
@@ -51,15 +54,21 @@ asyncValidator.Validator = class Validator
         validateFunc.apply(newInstance, v_args) str, next, context
       return newInstance
 
-  validate :(val, cb) ->
-    idx = 0
-    if typeof val is 'undefined'
-      if @_required
-        return cb?("Required")
+  validate: (val, cb) ->
+    @_validate val, (args...) ->
+      err = args[0]
+      if err?
+        args[0] = new ValidationError(err)
+      cb? args...
 
-    if val is null
-      if not @_nullable
-        return cb?("Not nullable")
+  _validate :(val, cb) ->
+    idx = 0
+
+    if @_required and typeof val is 'undefined'
+      return cb? "Required"
+
+    if not @_nullable and val is null
+      return cb? "Not nullable"
 
     if not val?
       return cb? null, val
@@ -103,20 +112,21 @@ asyncValidator.ScalarValidator = class ScalarValidator extends Validator
 asyncValidator.StringValidator = class StringValidator extends ScalarValidator
 
 asyncValidator.NumberValidator = class NumberValidator extends ScalarValidator
-  validate : (strOrNumber, cb) ->
+  _validate : (strOrNumber, cb) ->
     if strOrNumber?
-      str = strOrNumber + ''
-    else
-      str = strOrNumber
+      if strOrNumber is ''
+        str = null
+      else
+        str = strOrNumber + ''
 
-    super str, (err, str) ->
+    super strOrNumber, (err, str) ->
       if err
-        return cb?(err)
+        return cb? err
       else
         return cb? null, parseFloat str, 10
 
 asyncValidator.BooleanValidator = class BooleanValidator extends Validator
-  validate : (value, cb) ->
+  _validate : (value, cb) ->
     boolValue = null
     if value in [0, false, '0', 'false', 'no', 'off']
       boolValue = false
@@ -162,7 +172,7 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
       newInstance._max = args[1]
     return newInstance
 
-  validate : (array, cb) ->
+  _validate : (array, cb) ->
     isArray = array and typeof array.indexOf is "function"
     len = (if array then parseInt(array.length) else null)
     errors = []
@@ -210,7 +220,7 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
     else
       for i in [0 ... len]
         do (i) =>
-          @_innerValidator.validate array[i], (err, obj) ->
+          @_innerValidator._validate array[i], (err, obj) ->
             if err
               errorOccured = true
               errors[i] = err
@@ -266,7 +276,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
 
     return newInstance
 
-  validate : (obj, cb) ->
+  _validate : (obj, cb) ->
     completes = {}
     errors = {}
     errorOccured = false
@@ -322,7 +332,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
             completes[name] = obj[name]
           checkComplete()
         else
-          validator.validate obj[name], (err, validatedObj) =>
+          validator._validate obj[name], (err, validatedObj) =>
             if err
               errorOccured = true
               errors[name] = err
@@ -335,7 +345,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
 
 regexValidaor = (regex, msg) ->
   (str, next) ->
-    if not str or str == ''
+    if not str?
       return next()
     if str.match(regex)
       next()
