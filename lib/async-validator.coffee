@@ -160,6 +160,7 @@ asyncValidator.ArrayValidator = class ArrayValidator extends Validator
 
   context : (context) ->
     newInstance = @clone()
+    newInstance._context = context
     newInstance._innerValidator = newInstance._innerValidator.context(context)
 
     return newInstance
@@ -255,6 +256,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
 
   context : (context) ->
     newInstance = @clone()
+    newInstance._context = context
 
     contextValidators = []
     for innerValidator in newInstance._innerValidators
@@ -292,6 +294,7 @@ asyncValidator.ObjectValidator = class ObjectValidator extends Validator
           cb? null, completes
         else
           @_validators[idx++] obj, _next, @_context
+
     if typeof obj is 'undefined'
       if @_required
         return cb?("Required")

@@ -474,6 +474,34 @@
             return done();
           });
         });
+        it("object innervalidators can have context (custom)", function(done) {
+          var ov, v;
+          v = V.string().custom(function(str, next, context) {
+            if (str === (context != null ? context.value : void 0)) {
+              return next(null);
+            } else {
+              return next('invalid value');
+            }
+          });
+          ov = V.obj({
+            text: v
+          }).custom(function(obj, next, context) {
+            if (context === 'abc') {
+              return next();
+            }
+            return next('error');
+          });
+          return ov.context({
+            value: 'abc'
+          }).validate({
+            text: 'abc'
+          }, function(err, obj) {
+            console.log(err.validateInfo);
+            should.not.exist(err);
+            obj.text.should.equal('abc');
+            return done();
+          });
+        });
         return it("object innervalidator can have error", function(done) {
           var ov, v;
           v = V.string().custom(function(str, next, context) {

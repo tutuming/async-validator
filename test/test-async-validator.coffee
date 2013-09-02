@@ -401,6 +401,26 @@ describe "async-validator", ->
           obj.text.should.equal 'abc'
           done()
 
+      it "object innervalidators can have context (custom)", (done) ->
+        v = V.string().custom (str, next, context) ->
+          if str is context?.value
+            next null
+          else
+            next 'invalid value'
+
+        ov = V.obj(
+          text : v
+        ).custom (obj, next, context) ->
+          if context is 'abc'
+            return next()
+          next 'error'
+
+        ov.context({value : 'abc'}).validate {text : 'abc'}, (err, obj) ->
+          console.log err.validateInfo
+          should.not.exist(err)
+          obj.text.should.equal 'abc'
+          done()
+
       it "object innervalidator can have error", (done) ->
         v = V.string().custom (str, next, context) ->
           if str is context?.value
