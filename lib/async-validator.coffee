@@ -452,7 +452,7 @@ ScalarValidator.register "len", (args...) ->
       min = args[0]
       max = args[1]
 
-    if min? and (not str or str.length < min)
+    if min? and (!str? or str.length < min)
       next "String is too small"
     else if max and str.length > max
       next "String is too large"
