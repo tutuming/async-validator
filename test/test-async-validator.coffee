@@ -113,6 +113,28 @@ describe "async-validator", ->
           err.validateInfo.should.equal('Invalid Integer')
           done()
 
+    describe 'string', ->
+      it "should validate string length1", (done) ->
+        asyncValidator.string().len(0, 3).validate 'abc' , (err, str) ->
+          should.not.exist(err)
+          str.should.equal('abc')
+          done()
+      it "should validate string length2", (done) ->
+        asyncValidator.string().len(0, 3).validate '' , (err, str) ->
+          should.not.exist(err)
+          str.should.equal('')
+          done()
+
+      it "should validate string length3", (done) ->
+        asyncValidator.string().len(0, 3).validate 'abcd' , (err, str) ->
+          should.exist(err)
+          done()
+
+      it "should validate string length4", (done) ->
+        asyncValidator.string().len(2, 3).validate 'a' , (err, str) ->
+          should.exist(err)
+          done()
+
     describe 'boolean', ->
       it "should validate bool(true)", (done) ->
         asyncValidator.bool().validate true , (err, bool) ->
