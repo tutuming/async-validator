@@ -50,7 +50,7 @@ asyncValidator.Validator = class Validator
     this::[name] = ->
       newInstance = @clone()
       v_args = arguments
-      newInstance._validators.push (str, next, context) =>
+      newInstance._validators.push (str, next, context) ->
         validateFunc.apply(newInstance, v_args) str, next, context
       return newInstance
 
@@ -125,7 +125,10 @@ asyncValidator.NumberValidator = class NumberValidator extends ScalarValidator
       if err
         return cb? err
       else
-        return cb? null, parseFloat str, 10
+        if str?
+          return cb? null, parseFloat str, 10
+        else
+          return cb? null, str, 10
 
 asyncValidator.BooleanValidator = class BooleanValidator extends Validator
   _validate : (value, cb) ->

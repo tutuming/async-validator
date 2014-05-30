@@ -137,9 +137,28 @@
             return done();
           });
         });
-        return it("should validate numeric number(2)", function(done) {
+        it("should validate numeric number(2)", function(done) {
           return asyncValidator.number().isInt().validate('abc', function(err, number) {
             err.validateInfo.should.equal('Invalid Integer');
+            return done();
+          });
+        });
+        it("should validate numeric number(3)", function(done) {
+          asyncValidator.number().min(1900).max(2100).isInt().option().nullable().validate(null, function(err, number) {
+            should.not.exist(err);
+            should.not.exist(number);
+            return done();
+          });
+          return asyncValidator.number().min(1900).max(2100).isInt().option().nullable().validate(null, function(err, number) {
+            should.not.exist(err);
+            should.not.exist(number);
+            return done();
+          });
+        });
+        return it("should validate numeric with in validator", function(done) {
+          return asyncValidator.number()["in"](['10', '30']).validate('30', function(err, number) {
+            should.not.exist(err);
+            number.should.equal(30);
             return done();
           });
         });
@@ -514,7 +533,7 @@
           ov = V.obj({
             text: v
           }).custom(function(obj, next, context) {
-            if (context === 'abc') {
+            if (context.value === 'abc') {
               return next();
             }
             return next('error');
@@ -524,7 +543,6 @@
           }).validate({
             text: 'abc'
           }, function(err, obj) {
-            console.log(err.validateInfo);
             should.not.exist(err);
             obj.text.should.equal('abc');
             return done();

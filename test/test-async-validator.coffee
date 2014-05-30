@@ -113,6 +113,19 @@ describe "async-validator", ->
           err.validateInfo.should.equal('Invalid Integer')
           done()
 
+      it "should validate numeric number(3)", (done) ->
+        asyncValidator.number().min(1900).max(2100).isInt().option().nullable()
+        .validate null, (err, number) ->
+          should.not.exist(err)
+          should.not.exist(number)
+          done()
+
+        asyncValidator.number().min(1900).max(2100).isInt().option().nullable()
+        .validate null, (err, number) ->
+          should.not.exist(err)
+          should.not.exist(number)
+          done()
+
     describe 'string', ->
       it "should validate string length1", (done) ->
         asyncValidator.string().len(0, 3).validate 'abc' , (err, str) ->
@@ -133,6 +146,11 @@ describe "async-validator", ->
       it "should validate string length4", (done) ->
         asyncValidator.string().len(2, 3).validate 'a' , (err, str) ->
           should.exist(err)
+
+      it "should validate numeric with in validator", (done) ->
+        asyncValidator.number().in(['10', '30']).validate '30' , (err, number) ->
+          should.not.exist(err)
+          number.should.equal(30)
           done()
 
     describe 'boolean', ->
@@ -433,12 +451,11 @@ describe "async-validator", ->
         ov = V.obj(
           text : v
         ).custom (obj, next, context) ->
-          if context is 'abc'
+          if context.value is 'abc'
             return next()
           next 'error'
 
         ov.context({value : 'abc'}).validate {text : 'abc'}, (err, obj) ->
-          console.log err.validateInfo
           should.not.exist(err)
           obj.text.should.equal 'abc'
           done()
