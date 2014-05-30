@@ -143,7 +143,7 @@
             return done();
           });
         });
-        it("should validate numeric number(3)", function(done) {
+        return it("should validate numeric number(3)", function(done) {
           asyncValidator.number().min(1900).max(2100).isInt().option().nullable().validate(null, function(err, number) {
             should.not.exist(err);
             should.not.exist(number);
@@ -152,13 +152,6 @@
           return asyncValidator.number().min(1900).max(2100).isInt().option().nullable().validate(null, function(err, number) {
             should.not.exist(err);
             should.not.exist(number);
-            return done();
-          });
-        });
-        return it("should validate numeric with in validator", function(done) {
-          return asyncValidator.number()["in"](['10', '30']).validate('30', function(err, number) {
-            should.not.exist(err);
-            number.should.equal(30);
             return done();
           });
         });
@@ -184,9 +177,16 @@
             return done();
           });
         });
-        return it("should validate string length4", function(done) {
+        it("should validate string length4", function(done) {
           return asyncValidator.string().len(2, 3).validate('a', function(err, str) {
             should.exist(err);
+            return done();
+          });
+        });
+        return it("should validate numeric with in validator", function(done) {
+          return asyncValidator.number()["in"](['10', '30']).validate('30', function(err, number) {
+            should.not.exist(err);
+            number.should.equal(30);
             return done();
           });
         });

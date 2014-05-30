@@ -146,6 +146,7 @@ describe "async-validator", ->
       it "should validate string length4", (done) ->
         asyncValidator.string().len(2, 3).validate 'a' , (err, str) ->
           should.exist(err)
+          done()
 
       it "should validate numeric with in validator", (done) ->
         asyncValidator.number().in(['10', '30']).validate '30' , (err, number) ->
